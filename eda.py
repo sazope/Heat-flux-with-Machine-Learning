@@ -87,3 +87,62 @@ plt.xlabel('Column', fontsize=14)
 plt.ylabel('NaN Percentage ', fontsize=14)
 plt.title('Percentage of Missing Values per Column', fontsize=16)
 plt.plot()
+
+
+df_sample_submission.head()
+df_data.head()
+df_og.head()
+
+fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(20, 20))
+fig.subplots_adjust(hspace=0.4, wspace=0.3)
+axes = axes.flatten()
+
+def graph_categorical_feature(data: list[tuple[pd.DataFrame, str, str]], target: str, axes_start_i: int,
+                              x_label: list[str] = ('x', 'x'), y_label: list[str] = ('y', 'y'), title: list[str]=None, colors: list[str] = None) -> None:
+
+    # Plot barplots
+    df_tmp = pd.DataFrame({})
+    for df, column, label in data:
+        df_tmp_local = pd.DataFrame(df[column].value_counts() * 100 / df[column].count())
+        df_tmp_local['dataset'] = label
+        df_tmp = pd.concat([df_tmp, df_tmp_local], axis=0)
+    df_tmp['x'] = df_tmp.index
+    df_tmp = df_tmp.rename(columns={column: 'y', 'dataset': 'Data Set'})
+    sns.barplot(data=df_tmp, y='y', x="x", hue="Data Set", orient='v', ax=axes[axes_start_i])
+    #axes[i].set_xticklabels(axes[i].get_xticklabels(), rotation=90)
+    for p in axes[i].patches:
+        axes[i].annotate(format(p.get_height(), '.0f') + '%',
+                    (p.get_x() + p.get_width() / 2., p.get_height()),
+                    ha = 'center', va = 'center',
+                    xytext = (0, 5),
+                    textcoords = 'offset points')
+    axes[axes_start_i].set_xlabel(x_label[0], fontsize=14)
+    axes[axes_start_i].set_ylabel(y_label[0], fontsize=14)
+    if title is not None:
+        axes[axes_start_i].set_title(title[0], fontsize=16)
+
+df_tmp = pd.DataFrame({})
+    for df, column, label in data:
+        if label != 'test':
+            df_tmp_local = df.loc[:, [column, target]]
+            df_tmp_local['dataset'] = label
+            df_tmp = pd.concat([df_tmp, df_tmp_local], axis=0)
+    df_tmp = df_tmp.rename(columns={column: 'c', 'dataset': 'Data Set'})
+    if colors is not None:
+        sns.boxplot(x='c', y=target, data=df_tmp, orient='v', hue="Data Set", ax=axes[axes_start_i + 1], palette=colors)
+    else:
+        sns.boxplot(x='c', y=target, data=df_tmp, orient='v', hue="Data Set", ax=axes[axes_start_i + 1])
+    axes[axes_start_i + 1].set_xlabel(x_label[1], fontsize=14)
+    axes[axes_start_i + 1].set_ylabel(y_label[1], fontsize=14)
+    if title is not None:
+        axes[axes_start_i + 1].set_title(title[1], fontsize=16)
+
+    # Plot legends
+    axes[axes_start_i].legend()
+    axes[axes_start_i + 1].legend()
+
+i = 0
+graph_categorical_feature([(df_train, 'author', 'train'), (df_test, 'author', 'test'), (df_og, 'author', 'original')], 'x_e_out', i, x_label=['Author', 'Author'], y_label=['Author Share %', 'x_e_out (target)'], title=['Author distribution', 'Author vs x_e_out (target)'], colors=[sns.color_palette("tab10")[0], sns.color_palette("tab10")[2]])
+i += 2
+graph_categorical_feature([(df_train, 'geometry', 'train'), (df_test, 'geometry', 'test'), (df_og, 'geometry', 'original')], 'x_e_out', i, x_label=['Geometry', 'Geometry'], y_label=['Geometry Share %', 'x_e_out (target)'], title=['Geometry distribution', 'Geometry vs x_e_out (target)'], colors=[sns.color_palette("tab10")[0], sns.color_palette("tab10")[2]])
+plt.show()
